@@ -1,0 +1,7 @@
+django
+channels
+channels-redis
+daphne
+ollama
+python-dotenv
+requests

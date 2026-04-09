@@ -1,0 +1,46 @@
+services:
+  web:
+    build: 
+      context: ./chatbot_app
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      - redis
+      - ollama
+    volumes:
+      - ./chatbot_app:/app
+    restart: always
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: always
+
+  model-puller:
+    image: curlimages/curl
+    depends_on:
+      - ollama
+    volumes:
+      - ./init-ollama.sh:/init-ollama.sh
+    entrypoint: ["/bin/sh", "/init-ollama.sh"]
+
+volumes:
+  ollama_data:
